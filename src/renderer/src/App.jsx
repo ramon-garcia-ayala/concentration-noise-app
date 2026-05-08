@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import SoundMixer from './components/SoundMixer'
 import PomodoroTimer from './components/PomodoroTimer'
 import TitleBar from './components/TitleBar'
@@ -13,6 +13,14 @@ function AppInner() {
   const mixerRef = useRef(null)
   const { dark } = useTheme()
   const [timerOpen, setTimerOpen] = useState(true)
+  const [hasMedia, setHasMedia] = useState(false)
+
+  useEffect(() => {
+    const cleanup = window.electron?.onMediaUpdate((data) => {
+      setHasMedia(!!(data && data.title))
+    })
+    return () => cleanup?.()
+  }, [])
 
   const handleMoodApply = (mood) => {
     timerRef.current?.applyPreset(mood.phrase, mood.timer, mood.color)
@@ -28,13 +36,14 @@ function AppInner() {
     }`}>
       <ParticleBackground />
       <TitleBar />
-      {/* Daily Mood Banner */}
-      <div className="relative z-10 px-4 sm:px-5 pt-1 pb-2">
-        <DailyMood onApply={handleMoodApply} />
-      </div>
-      {/* Media Player — auto shows/hides */}
-      <div className="relative z-10">
-        <MediaPlayer />
+      {/* Daily Mood + Media Player row */}
+      <div className="relative z-30 px-4 sm:px-5 pt-1 pb-2 flex items-stretch gap-2">
+        <div className={`transition-all duration-500 min-w-0 ${hasMedia ? 'flex-1' : 'w-full'}`}>
+          <DailyMood onApply={handleMoodApply} />
+        </div>
+        <div className={`shrink-0 transition-all duration-500 ${hasMedia ? 'w-auto opacity-100' : 'w-0 opacity-0 pointer-events-none'}`}>
+          <MediaPlayer />
+        </div>
       </div>
       {/* Main content */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden relative z-10 px-3 pb-3 gap-2">

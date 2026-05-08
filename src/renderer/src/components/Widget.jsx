@@ -101,11 +101,18 @@ export default function Widget() {
   const animRef = useRef(null)
   const timerRef = useRef(null)
 
+  const [masterVol, setMasterVol] = useState(1)
+  const draggingVol = useRef(false)
+
   useEffect(() => {
-    window.electron?.onTimerUpdate((data) => {
+    const cleanup = window.electron?.onTimerUpdate((data) => {
       setTimer(data)
       timerRef.current = data
+      if (data?.masterVolume !== undefined && !draggingVol.current) {
+        setMasterVol(data.masterVolume)
+      }
     })
+    return () => cleanup?.()
   }, [])
 
   // Cat mascot animation — mirrors main app
@@ -317,6 +324,66 @@ export default function Widget() {
               )}
             </button>
 
+            {/* Volume knob */}
+            <div
+              className="relative w-6 h-6 group"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                draggingVol.current = true
+                const rect = e.currentTarget.getBoundingClientRect()
+                const updateVol = (clientY) => {
+                  const ratio = 1 - Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
+                  setMasterVol(ratio)
+                  window.electron?.setMasterVolume(ratio)
+                }
+                updateVol(e.clientY)
+                const onMove = (ev) => updateVol(ev.clientY)
+                const onUp = () => {
+                  draggingVol.current = false
+                  window.removeEventListener('mousemove', onMove)
+                  window.removeEventListener('mouseup', onUp)
+                }
+                window.addEventListener('mousemove', onMove)
+                window.addEventListener('mouseup', onUp)
+              }}
+              onWheel={(e) => {
+                const delta = e.deltaY > 0 ? -0.05 : 0.05
+                const next = Math.max(0, Math.min(1, masterVol + delta))
+                setMasterVol(next)
+                window.electron?.setMasterVolume(next)
+              }}
+              title={`Volume: ${Math.round(masterVol * 100)}%`}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" className="cursor-pointer">
+                {/* Background ring */}
+                <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                {/* Volume arc */}
+                <circle
+                  cx="12" cy="12" r="8"
+                  fill="none"
+                  stroke={masterVol > 0 ? color : 'rgba(255,255,255,0.15)'}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 8}
+                  strokeDashoffset={2 * Math.PI * 8 * (1 - masterVol)}
+                  style={{ transform: 'rotate(-90deg)', transformOrigin: 'center', transition: 'stroke-dashoffset 0.1s', filter: masterVol > 0 ? `drop-shadow(0 0 3px ${color}40)` : 'none' }}
+                />
+                {/* Speaker icon */}
+                {masterVol === 0 ? (
+                  <g transform="translate(8, 8)" stroke="rgba(255,255,255,0.4)" strokeWidth="1" fill="none" strokeLinecap="round">
+                    <path d="M1 3v2l2.5 0L6 7V1L3.5 3z" fill="rgba(255,255,255,0.3)" />
+                    <path d="M6.5 3l1 2" /><path d="M7.5 3l-1 2" />
+                  </g>
+                ) : (
+                  <g transform="translate(8, 8)" stroke="rgba(255,255,255,0.5)" strokeWidth="1" fill="none" strokeLinecap="round">
+                    <path d="M1 3v2l2.5 0L6 7V1L3.5 3z" fill="rgba(255,255,255,0.35)" />
+                    {masterVol > 0.3 && <path d="M7 3.5c.5.5.5 1.5 0 2" />}
+                    {masterVol > 0.6 && <path d="M7.5 2.5c1 1 1 3 0 4" />}
+                  </g>
+                )}
+              </svg>
+            </div>
+
             {/* Close */}
             <button
               onClick={close}
@@ -346,41 +413,41 @@ export default function Widget() {
             ))}
           </div>
         )}
+        {/* Animated progress border — inside panel, clipped to panel bounds */}
+        {(isRunning || progress > 0) && (
+          <svg
+            className="absolute inset-0 pointer-events-none"
+            viewBox={`0 0 ${W} ${H}`}
+            preserveAspectRatio="none"
+            style={{ zIndex: 10, width: '100%', height: '100%', filter: `drop-shadow(0 0 6px ${color}50)` }}
+          >
+            <rect
+              x={SW / 2} y={SW / 2}
+              width={W - SW} height={H - SW}
+              rx={R} ry={R}
+              fill="none"
+              stroke={color}
+              strokeWidth={SW}
+              strokeLinecap="round"
+              strokeDasharray={perimeter}
+              strokeDashoffset={isInfinite ? 0 : perimeter * (1 - progress)}
+              style={{
+                transition: isInfinite ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s ease',
+                animation: isInfinite && isRunning ? 'spin-border 4s linear infinite' : 'none',
+                transformOrigin: 'center',
+              }}
+            />
+          </svg>
+        )}
+
+        {/* Keyframes for infinite mode spinning border */}
+        <style>{`
+          @keyframes spin-border {
+            from { stroke-dashoffset: ${perimeter}; }
+            to { stroke-dashoffset: 0; }
+          }
+        `}</style>
       </div>
-
-      {/* Animated progress border — on top of content */}
-      {(isRunning || progress > 0) && (
-        <svg
-          className="absolute inset-0 pointer-events-none"
-          width={W} height={H}
-          style={{ zIndex: 10, filter: `drop-shadow(0 0 6px ${color}50)` }}
-        >
-          <rect
-            x={SW / 2} y={SW / 2}
-            width={W - SW} height={H - SW}
-            rx={R} ry={R}
-            fill="none"
-            stroke={color}
-            strokeWidth={SW}
-            strokeLinecap="round"
-            strokeDasharray={perimeter}
-            strokeDashoffset={isInfinite ? 0 : perimeter * (1 - progress)}
-            style={{
-              transition: isInfinite ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s ease',
-              animation: isInfinite && isRunning ? 'spin-border 4s linear infinite' : 'none',
-              transformOrigin: 'center',
-            }}
-          />
-        </svg>
-      )}
-
-      {/* Keyframes for infinite mode spinning border */}
-      <style>{`
-        @keyframes spin-border {
-          from { stroke-dashoffset: ${perimeter}; }
-          to { stroke-dashoffset: 0; }
-        }
-      `}</style>
     </div>
   )
 }

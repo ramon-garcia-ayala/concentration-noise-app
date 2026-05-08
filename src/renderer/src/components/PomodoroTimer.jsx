@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 import { useTheme } from '../ThemeContext'
-import { setAudioMuted, getMascotState } from '../audioBus'
+import { setAudioMuted, getMascotState, getMasterVolume, setMasterVolume } from '../audioBus'
 
 const PRESET_COLORS = [
   '#E07A2F', '#34C759', '#5AC8FA', '#AF52DE', '#FF9500',
@@ -97,6 +97,8 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
   const [newMinutes, setNewMinutes] = useState(10)
   const [newColor, setNewColor] = useState(PRESET_COLORS[3])
   const intervalRef = useRef(null)
+  const [moodFading, setMoodFading] = useState(false) // mood preset exit animation
+  const moodFadeTimer = useRef(null)
   const mode = modes[modeIndex]
   const isInfinite = mode.infinite
 
@@ -119,6 +121,11 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
   const [cwCycles, setCwCycles] = useState(4)
   const [cwRest, setCwRest] = useState(15)
 
+  // Wrap sendTimerUpdate to always include masterVolume
+  const sendUpdate = (data) => {
+    window.electron?.sendTimerUpdate({ ...data, masterVolume: getMasterVolume() })
+  }
+
   // ── Normal timer logic (unchanged when no workflow active) ──
   useEffect(() => {
     if (workflow) return
@@ -136,7 +143,7 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
     if (running) {
       setAudioMuted(false)
       const totalSec = isInfinite ? 0 : mode.minutes * 60
-      window.electron?.sendTimerUpdate({
+      sendUpdate({
         minutes: Math.floor(seconds / 60),
         seconds: seconds % 60,
         running: true,
@@ -151,7 +158,7 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
         setSeconds((s) => {
           if (isInfinite) {
             const next = s + 1
-            window.electron?.sendTimerUpdate({
+            sendUpdate({
               minutes: Math.floor(next / 60),
               seconds: next % 60,
               running: true,
@@ -168,7 +175,7 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
             setRunning(false)
             setAudioMuted(true)
             if (modeIndex <= 1) setSessions((prev) => prev + 1)
-            window.electron?.sendTimerUpdate({
+            sendUpdate({
               minutes: 0, seconds: 0, running: false,
               mode: mode.label, color: mode.color,
               mascot: 'sleeping', totalSeconds: totalSec, infinite: false
@@ -176,7 +183,7 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
             return 0
           }
           const next = s - 1
-          window.electron?.sendTimerUpdate({
+          sendUpdate({
             minutes: Math.floor(next / 60),
             seconds: next % 60,
             running: true,
@@ -191,10 +198,8 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
       }, 1000)
     } else {
       clearInterval(intervalRef.current)
-      if (seconds !== (isInfinite ? 0 : mode.minutes * 60)) {
-        setAudioMuted(true)
-      }
-      window.electron?.sendTimerUpdate({
+      setAudioMuted(true)
+      sendUpdate({
         minutes: Math.floor(seconds / 60),
         seconds: seconds % 60,
         running: false,
@@ -230,19 +235,49 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
     setRunning(false)
     setAudioMuted(true)
     setSeconds(isInfinite ? 0 : mode.minutes * 60)
-    window.electron?.sendTimerUpdate({ running: false, mascot: 'sleeping' })
+    sendUpdate({ running: false, mascot: 'sleeping' })
   }
   const openWidget = () => window.electron?.openWidget()
 
   useEffect(() => {
-    window.electron?.onToggleTimer(() => toggleRef.current?.())
+    const cleanup = window.electron?.onToggleTimer(() => toggleRef.current?.())
+    return () => cleanup?.()
   }, [])
+
+  // Listen for master volume changes from widget
+  useEffect(() => {
+    const cleanup = window.electron?.onSetMasterVolume((level) => {
+      setMasterVolume(level)
+      // Notify SoundMixer via custom event
+      window.dispatchEvent(new CustomEvent('master-volume-change', { detail: level }))
+    })
+    return () => cleanup?.()
+  }, [])
+
+  // Animate mood preset out, then remove
+  const removeMoodPreset = (selectIndex) => {
+    clearTimeout(moodFadeTimer.current)
+    setMoodFading(true)
+    moodFadeTimer.current = setTimeout(() => {
+      setMoodFading(false)
+      setModes(prev => {
+        const moodIdx = prev.findIndex(x => x.isMood)
+        if (moodIdx === -1) return prev
+        const updated = prev.filter(x => !x.isMood)
+        setModeIndex(selectIndex < moodIdx ? selectIndex : Math.max(0, selectIndex - 1))
+        return updated
+      })
+    }, 700)
+  }
 
   useImperativeHandle(ref, () => ({
     applyPreset(label, minutes, color) {
       if (workflow) exitWorkflow()
-      const preset = { id: `mood-${Date.now()}`, label, minutes, color }
-      const updated = [...modes, preset]
+      clearTimeout(moodFadeTimer.current)
+      setMoodFading(false)
+      const preset = { id: 'mood-preset', label, minutes, color, isMood: true }
+      const withoutMood = modes.filter(m => !m.isMood)
+      const updated = [...withoutMood, preset]
       setModes(updated)
       setModeIndex(updated.length - 1)
     }
@@ -280,7 +315,7 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
   // Helper: sends timer update with workflow step info when active
   function sendWfUpdate(data, steps, stepIdx) {
     const stepsInfo = steps?.map(s => ({ type: s.type, color: s.color, minutes: s.minutes })) || null
-    window.electron?.sendTimerUpdate({
+    sendUpdate({
       ...data,
       wfSteps: stepsInfo,
       wfStepIdx: stepIdx ?? 0
@@ -321,7 +356,7 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
     setWfRunning(false)
     setWfDone(false)
     setAudioMuted(true)
-    window.electron?.sendTimerUpdate({ running: false, mascot: 'sleeping', wfSteps: null, wfStepIdx: 0 })
+    sendUpdate({ running: false, mascot: 'sleeping', wfSteps: null, wfStepIdx: 0 })
   }
 
   // Workflow toggle
@@ -1042,28 +1077,48 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
 
       {/* Preset list — scrollable chips */}
       <div className="flex flex-wrap justify-center gap-1 max-w-[320px]">
-        {modes.map((m, i) => (
-          <button
-            key={m.id}
-            onClick={() => setModeIndex(i)}
-            onContextMenu={(e) => {
-              e.preventDefault()
-              if (modes.length > 1) deletePreset(i)
-            }}
-            className={`group relative px-2.5 py-1 rounded-full text-[10px] font-mono font-medium tracking-wider uppercase active:scale-95 transition-all ${
-              modeIndex === i ? 'text-white' : 'text-[#86868b] hover:text-[#1d1d1f]'
-            }`}
-            style={modeIndex === i ? { background: m.color } : {}}
-            title={`${m.infinite ? '\u221e' : m.minutes + ' min'} \u2014 right-click to delete`}
-          >
-            {m.label}
-            {!m.infinite && (
-              <span className={`ml-1 ${modeIndex === i ? 'text-white/60' : 'text-[#aeaeb2]'}`}>
-                {m.minutes}m
-              </span>
-            )}
-          </button>
-        ))}
+        {modes.map((m, i) => {
+          const isFadingOut = m.isMood && moodFading
+          return (
+            <button
+              key={m.id}
+              onClick={() => {
+                if (!m.isMood) {
+                  const moodIdx = modes.findIndex(x => x.isMood)
+                  if (moodIdx !== -1 && !moodFading) {
+                    removeMoodPreset(i)
+                    return
+                  }
+                }
+                setModeIndex(i)
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                if (modes.length > 1) deletePreset(i)
+              }}
+              className={`group relative px-2.5 py-1 rounded-full text-[10px] font-mono font-medium tracking-wider uppercase active:scale-95 ${
+                modeIndex === i ? 'text-white' : 'text-[#86868b] hover:text-[#1d1d1f]'
+              }`}
+              style={{
+                ...(modeIndex === i ? { background: m.color } : {}),
+                transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, transform 0.6s ease, max-width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                opacity: isFadingOut ? 0 : 1,
+                transform: isFadingOut ? 'scale(0.85)' : 'scale(1)',
+                maxWidth: isFadingOut ? '0px' : '200px',
+                overflow: 'hidden',
+                padding: isFadingOut ? '4px 0' : undefined,
+              }}
+              title={`${m.infinite ? '\u221e' : m.minutes + ' min'} \u2014 right-click to delete`}
+            >
+              {m.label}
+              {!m.infinite && (
+                <span className={`ml-1 ${modeIndex === i ? 'text-white/60' : 'text-[#aeaeb2]'}`}>
+                  {m.minutes}m
+                </span>
+              )}
+            </button>
+          )
+        })}
 
         {/* Add preset button */}
         <button

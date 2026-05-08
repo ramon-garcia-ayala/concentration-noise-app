@@ -430,6 +430,14 @@ const SoundMixer = forwardRef(function SoundMixer(_, ref) {
   }, [])
 
   const [masterVol, setMasterVol] = useState(() => getMasterVolume())
+
+  // Sync master volume when changed from widget
+  useEffect(() => {
+    const handler = (e) => setMasterVol(e.detail)
+    window.addEventListener('master-volume-change', handler)
+    return () => window.removeEventListener('master-volume-change', handler)
+  }, [])
+
   const { dark } = useTheme()
   const activeCount = Object.values(volumes).filter(v => v > 0).length
 
@@ -507,10 +515,10 @@ const SoundMixer = forwardRef(function SoundMixer(_, ref) {
           <div className="relative">
             <button
               onClick={() => setShowPresets(p => !p)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full active:scale-95 transition-all duration-200"
               style={{
                 background: showPresets ? (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') : (dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
-                border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`
+                border: `1px solid ${showPresets ? (dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)') : (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)')}`,
               }}
             >
               <svg width="9" height="9" viewBox="0 0 16 16" fill="#86868b">
