@@ -163,8 +163,8 @@ function startMediaPolling() {
 
 function createWidgetWindow() {
   widgetWindow = new BrowserWindow({
-    width: 290,
-    height: 85,
+    width: 298,
+    height: 93,
     alwaysOnTop: true,
     frame: false,
     transparent: true,
@@ -201,6 +201,18 @@ ipcMain.on('close-widget', () => {
 ipcMain.on('timer-update', (_, data) => {
   if (widgetWindow && !widgetWindow.isDestroyed()) {
     widgetWindow.webContents.send('timer-update', data)
+  }
+})
+
+ipcMain.on('mascot-update', (_, data) => {
+  if (widgetWindow && !widgetWindow.isDestroyed()) {
+    widgetWindow.webContents.send('mascot-update', data)
+  }
+})
+
+ipcMain.on('mascot-click', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('mascot-click')
   }
 })
 

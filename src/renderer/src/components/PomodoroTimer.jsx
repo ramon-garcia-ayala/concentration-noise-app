@@ -121,9 +121,11 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
   const [cwCycles, setCwCycles] = useState(4)
   const [cwRest, setCwRest] = useState(15)
 
-  // Wrap sendTimerUpdate to always include masterVolume
+  // Wrap sendTimerUpdate to always include masterVolume and cat preset
   const sendUpdate = (data) => {
-    window.electron?.sendTimerUpdate({ ...data, masterVolume: getMasterVolume() })
+    let catPreset = 0
+    try { catPreset = JSON.parse(localStorage.getItem('cat-config'))?.presetIdx || 0 } catch {}
+    window.electron?.sendTimerUpdate({ ...data, masterVolume: getMasterVolume(), catPreset })
   }
 
   // ── Normal timer logic (unchanged when no workflow active) ──
@@ -238,6 +240,24 @@ const PomodoroTimer = forwardRef(function PomodoroTimer(_, ref) {
     sendUpdate({ running: false, mascot: 'sleeping' })
   }
   const openWidget = () => window.electron?.openWidget()
+
+  // Re-send update when cat config changes so widget syncs color immediately
+  useEffect(() => {
+    const handler = () => {
+      sendUpdate({
+        minutes: Math.floor(seconds / 60),
+        seconds: seconds % 60,
+        running,
+        mode: mode.label,
+        color: mode.color,
+        mascot: getMascotState(),
+        totalSeconds: isInfinite ? 0 : mode.minutes * 60,
+        infinite: !!isInfinite
+      })
+    }
+    window.addEventListener('cat-config-change', handler)
+    return () => window.removeEventListener('cat-config-change', handler)
+  }, [seconds, running, mode, isInfinite])
 
   useEffect(() => {
     const cleanup = window.electron?.onToggleTimer(() => toggleRef.current?.())

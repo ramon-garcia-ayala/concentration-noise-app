@@ -5,71 +5,83 @@ const F = 'F', Fd = 'Fd', Fw = 'Fw', Fp = 'Fp', E = 'E', Ep = 'Ep'
 const _ = null
 
 const CAT_PRESETS = [
-  { name: 'Grey',      fur: '#6B6B6B', furDark: '#4A4A4A', belly: '#D4D4D4', pink: '#FFB6C1', eyeW: '#FFFFFF', pupil: '#1d1d1f' },
-  { name: 'Orange',    fur: '#D4843E', furDark: '#A8652A', belly: '#F5DCC0', pink: '#FFB6C1', eyeW: '#FFFFFF', pupil: '#2D5016' },
-  { name: 'Black',     fur: '#2A2A2A', furDark: '#151515', belly: '#4A4A4A', pink: '#CC8B96', eyeW: '#E8D44D', pupil: '#1d1d1f' },
-  { name: 'White',     fur: '#E8E8E8', furDark: '#C8C8C8', belly: '#FFFFFF', pink: '#FFB6C1', eyeW: '#87CEEB', pupil: '#1d1d1f' },
-  { name: 'Siamese',   fur: '#F0E6D3', furDark: '#8B7355', belly: '#FAF5ED', pink: '#FFB6C1', eyeW: '#6CB4EE', pupil: '#1d1d1f' },
-  { name: 'Tuxedo',    fur: '#1A1A1A', furDark: '#000000', belly: '#FFFFFF', pink: '#FFB6C1', eyeW: '#90EE90', pupil: '#1d1d1f' },
-  { name: 'Calico',    fur: '#C4813C', furDark: '#3D3D3D', belly: '#F5E6D0', pink: '#FFB6C1', eyeW: '#FFFFFF', pupil: '#5D4E37' },
-  { name: 'Russian Blue', fur: '#7B8FA0', furDark: '#5A6E7F', belly: '#B8C8D4', pink: '#D4A0AA', eyeW: '#90EE90', pupil: '#1d1d1f' },
+  { name: 'Mochi',     fur: '#6B6B6B', furDark: '#4A4A4A', belly: '#D4D4D4', pink: '#FFB6C1', eyeW: '#FFFFFF', pupil: '#1d1d1f' },
+  { name: 'Pumpkin',   fur: '#D4843E', furDark: '#A8652A', belly: '#F5DCC0', pink: '#FFB6C1', eyeW: '#FFFFFF', pupil: '#2D5016' },
+  { name: 'Cleo',      fur: '#2A2A2A', furDark: '#151515', belly: '#4A4A4A', pink: '#CC8B96', eyeW: '#E8D44D', pupil: '#1d1d1f' },
+  { name: 'Snowball',  fur: '#E8E8E8', furDark: '#C8C8C8', belly: '#FFFFFF', pink: '#FFB6C1', eyeW: '#87CEEB', pupil: '#1d1d1f' },
+  { name: 'Biscuit',   fur: '#F0E6D3', furDark: '#8B7355', belly: '#FAF5ED', pink: '#FFB6C1', eyeW: '#6CB4EE', pupil: '#1d1d1f' },
+  { name: 'Pepper',    fur: '#1A1A1A', furDark: '#000000', belly: '#FFFFFF', pink: '#FFB6C1', eyeW: '#90EE90', pupil: '#1d1d1f' },
+  { name: 'Niki',      fur: '#C4813C', furDark: '#3D3D3D', belly: '#F5E6D0', pink: '#FFB6C1', eyeW: '#FFFFFF', pupil: '#5D4E37' },
+  { name: 'Misty',     fur: '#7B8FA0', furDark: '#5A6E7F', belly: '#B8C8D4', pink: '#D4A0AA', eyeW: '#90EE90', pupil: '#1d1d1f' },
 ]
 
-// All sprites — identical to PixelMascot
+// All sprites — identical to PixelMascot (tails drawn dynamically)
 const SPRITE_DATA = {
   idle: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,Ep,E,Fw,Fw,Ep,E,Fw,F],[F,Fw,Ep,Ep,Fw,Fw,Ep,Ep,Fw,F],[F,Fw,Fw,Fw,Fp,Fp,Fw,Fw,Fw,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,F,F],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   listening: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],[F,Fw,Fd,Fd,Fw,Fw,Fd,Fd,Fw,F],[F,Fw,Fw,Fw,Fp,Fp,Fw,Fw,Fw,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,F,F,_,_],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   studying1: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,Ep,E,Fw,Fw,Ep,E,Fw,F],[F,Fw,Ep,Ep,Fw,Fw,Ep,Ep,Fw,F],[F,Fw,Fw,Fw,Fp,Fp,Fw,Fw,Fw,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,F,F],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   studying2: [
     [_,_,F,_,_,_,_,F,_,_],[_,F,Fp,F,F,F,F,Fp,F,_],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,Ep,E,Fw,Fw,Ep,E,Fw,F],[F,Fw,Ep,Ep,Fw,Fw,Ep,Ep,Fw,F],[F,Fw,Fw,Fw,Fp,Fp,Fw,Fw,Fw,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,F,F,_,_,_],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   dance1: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,Ep,E,Fw,Fw,Ep,E,Fw,F],[F,Fw,Ep,Ep,Fw,Fw,Ep,Ep,Fw,F],[F,Fp,Fw,Fw,Fw,Fw,Fw,Fw,Fp,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[F,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,F],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   dance2: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,E,Ep,Fw,Fw,E,Ep,Fw,F],[F,Fw,Ep,Ep,Fw,Fw,Ep,Ep,Fw,F],[F,Fp,Fw,Fw,Fw,Fw,Fw,Fw,Fp,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,F],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[F,_,_,_,_,_,_,_,_,_],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   sleeping: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],[F,Fw,Fd,Fd,Fw,Fw,Fd,Fd,Fw,F],[F,Fw,Fw,Fw,Fp,Fp,Fw,Fw,Fw,F],
-    [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
+    [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,F,F,F,F,F,F,F,_],
+    [_,_,F,F,F,F,F,F,_,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   vibing1: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,Ep,E,Fw,Fw,Ep,E,Fw,F],[F,Fw,Ep,Ep,Fw,Fw,Ep,Ep,Fw,F],[F,Fp,Fw,Fw,Fp,Fp,Fw,Fw,Fp,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[F,_,F,Fw,Fw,Fw,Fw,F,_,F],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,F,F],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
   vibing2: [
     [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
     [F,Fw,E,Ep,Fw,Fw,E,Ep,Fw,F],[F,Fw,Ep,Ep,Fw,Fw,Ep,Ep,Fw,F],[F,Fp,Fw,Fw,Fp,Fp,Fw,Fw,Fp,F],
     [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[F,_,F,Fw,Fw,Fw,Fw,F,_,F],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
-    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[F,F,_,_,_,_,_,_,_,_],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
+  ],
+  wink: [
+    [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
+    [F,Fw,Fw,Fw,Fw,Fw,Ep,E,Fw,F],[F,Fw,Fd,Fd,Fw,Fw,Ep,Ep,Fw,F],[F,Fw,Fw,Fw,Fp,Fp,Fw,Fw,Fw,F],
+    [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,F,F,F,F,F,F,F,_],
+    [_,_,F,F,F,F,F,F,_,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
+  ],
+  love: [
+    [_,F,_,_,_,_,_,_,F,_],[F,Fp,F,F,F,F,F,F,Fp,F],[F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],
+    [F,Fw,Fw,Fw,Fw,Fw,Fw,Fw,Fw,F],[F,Fw,Fd,Fd,Fw,Fw,Fd,Fd,Fw,F],[F,Fw,Fw,Fw,Fp,Fp,Fw,Fw,Fw,F],
+    [_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],[_,F,F,Fw,Fw,Fw,Fw,F,F,_],[_,F,Fw,Fw,Fw,Fw,Fw,Fw,F,_],
+    [_,F,F,_,_,_,_,F,F,_],[_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_],
   ],
 }
 
@@ -85,6 +97,8 @@ function getMotion(k, bp, t) {
     dance2: { bx: Math.sin(bp * 3) * 3, by: Math.abs(Math.sin(bp * 4)) * -3 },
     vibing1: { bx: Math.sin(bp * 3) * 3.5, by: Math.abs(Math.sin(bp * 5)) * -4 },
     vibing2: { bx: Math.sin(bp * 3) * 3.5, by: Math.abs(Math.sin(bp * 5)) * -4 },
+    wink: { bx: 0, by: Math.sin(t * 1.5) * 0.5 },
+    love: { bx: 0, by: Math.sin(t * 4) * 0.8 + 2 },
   }
   return m[k] || { bx: 0, by: 0 }
 }
@@ -100,9 +114,18 @@ export default function Widget() {
   const canvasRef = useRef(null)
   const animRef = useRef(null)
   const timerRef = useRef(null)
+  const mascotRef = useRef({ mascot: 'sleeping', catPreset: 0 })
 
   const [masterVol, setMasterVol] = useState(1)
   const draggingVol = useRef(false)
+
+  // Listen for frequent mascot updates (~10fps)
+  useEffect(() => {
+    const cleanup = window.electron?.onMascotUpdate((data) => {
+      mascotRef.current = data
+    })
+    return () => cleanup?.()
+  }, [])
 
   useEffect(() => {
     const cleanup = window.electron?.onTimerUpdate((data) => {
@@ -129,19 +152,20 @@ export default function Widget() {
 
     let frame = 0, beatPhase = 0
 
-    // Load cat config
-    let presetIdx = 0
-    try {
-      const saved = localStorage.getItem('cat-config')
-      if (saved) presetIdx = JSON.parse(saved).presetIdx || 0
-    } catch {}
-    const colors = CAT_PRESETS[presetIdx] || CAT_PRESETS[0]
+    // Track current preset, re-resolve when it changes
+    let currentPresetIdx = -1
+    let resolved = {}
+    let colors = CAT_PRESETS[0]
 
-    // Resolve all sprites
-    const resolved = {}
-    for (const [key, data] of Object.entries(SPRITE_DATA)) {
-      resolved[key] = resolveSprite(data, colors)
+    function resolveAllSprites(idx) {
+      colors = CAT_PRESETS[idx] || CAT_PRESETS[0]
+      resolved = {}
+      for (const [key, data] of Object.entries(SPRITE_DATA)) {
+        resolved[key] = resolveSprite(data, colors)
+      }
+      currentPresetIdx = idx
     }
+    resolveAllSprites(0)
 
     function drawSprite(sprite, ox, oy) {
       for (let r = 0; r < sprite.length; r++) {
@@ -178,6 +202,39 @@ export default function Widget() {
       ctx.globalAlpha = 1
     }
 
+    function drawTail(ox, oy, t, key) {
+      const isSleeping = key === 'sleeping'
+      const baseX = isSleeping ? 6 : 8
+      const baseY = 9
+      let swaySpeed, swayAmount
+      if (isSleeping) { swaySpeed = 0.8; swayAmount = 0.4 }
+      else if (key.startsWith('vibing') || key.startsWith('dance')) { swaySpeed = 3; swayAmount = 1.5 }
+      else { swaySpeed = 1.5; swayAmount = 0.8 }
+      const sway = Math.sin(t * swaySpeed) * swayAmount
+
+      if (isSleeping) {
+        const pixels = [
+          { x: baseX + 1, y: baseY + 0.5 + sway * 0.3 },
+          { x: baseX + 2, y: baseY + 0.8 + sway * 0.5 },
+          { x: baseX + 3, y: baseY + 0.5 + sway * 0.7 },
+        ]
+        pixels.forEach((p, i) => {
+          ctx.fillStyle = i === 2 ? colors.furDark : colors.fur
+          ctx.fillRect(Math.round(ox + p.x * PX), Math.round(oy + p.y * PX), PX, PX)
+        })
+      } else {
+        const pixels = [
+          { x: baseX + 0.5, y: baseY + sway * 0.3 },
+          { x: baseX + 1, y: baseY + 0.5 + sway * 0.6 },
+          { x: baseX + 1.5, y: baseY + 1 + sway },
+        ]
+        pixels.forEach((p, i) => {
+          ctx.fillStyle = i === 2 ? colors.furDark : colors.fur
+          ctx.fillRect(Math.round(ox + p.x * PX), Math.round(oy + p.y * PX), PX, PX)
+        })
+      }
+    }
+
     function drawHearts(ox, oy, t) {
       ctx.globalAlpha = 0.4 + Math.sin(t * 3) * 0.15
       ctx.fillStyle = colors.pink
@@ -197,13 +254,20 @@ export default function Widget() {
 
     function animate() {
       frame++
-      beatPhase += 0.03 + 0.03
       const t = frame * 0.016
       ctx.clearRect(0, 0, CW, CH)
 
-      const data = timerRef.current
-      // Use mascot state from main app, fallback to sleeping
-      const spriteKey = data?.mascot || 'sleeping'
+      // Use frequent mascot updates for responsive animation
+      const mc = mascotRef.current
+      const newPresetIdx = mc.catPreset ?? 0
+      if (newPresetIdx !== currentPresetIdx) resolveAllSprites(newPresetIdx)
+
+      const spriteKey = mc.mascot || 'sleeping'
+
+      // Match beatPhase speed to sprite energy level (mirrors main app audio-reactive speed)
+      const speedMap = { sleeping: 0.03, idle: 0.04, listening: 0.05, studying1: 0.06, studying2: 0.06,
+        dance1: 0.08, dance2: 0.08, vibing1: 0.09, vibing2: 0.09, wink: 0.03, love: 0.05 }
+      beatPhase += speedMap[spriteKey] || 0.05
 
       if (!resolved[spriteKey]) {
         animRef.current = requestAnimationFrame(animate)
@@ -216,15 +280,13 @@ export default function Widget() {
       const ox = (CW - sw) / 2 + motion.bx
       const oy = (CH - 12 * PX) / 2 + motion.by
 
+      drawTail(ox, oy, t, spriteKey)
       drawSprite(resolved[spriteKey], ox, oy)
 
       if (spriteKey === 'sleeping') {
         drawZzz(ox, t)
-      } else if (spriteKey.startsWith('vibing') || spriteKey.startsWith('dance')) {
+      } else if (spriteKey === 'love') {
         drawHearts(ox, oy, t)
-        drawNotes(ox, oy, t, colors.fur)
-      } else if (spriteKey !== 'idle') {
-        drawNotes(ox, oy, t, colors.fur)
       }
 
       animRef.current = requestAnimationFrame(animate)
@@ -265,7 +327,7 @@ export default function Widget() {
   const perimeter = straight + corners
 
   return (
-    <div className="relative w-full h-full select-none">
+    <div className="relative w-full h-full select-none" style={{ padding: '4px' }}>
       {/* Widget content */}
       <div
         className="flex flex-col h-full"
@@ -275,7 +337,7 @@ export default function Widget() {
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           borderRadius: '16px',
           border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
           WebkitAppRegion: 'drag'
         }}
       >
@@ -283,7 +345,9 @@ export default function Widget() {
           {/* Cat mascot */}
           <canvas
             ref={canvasRef}
-            style={{ imageRendering: 'pixelated', width: '52px', height: '58px' }}
+            onClick={() => window.electron?.sendMascotClick()}
+            className="cursor-pointer"
+            style={{ imageRendering: 'pixelated', width: '52px', height: '58px', WebkitAppRegion: 'no-drag' }}
           />
 
           <div className="flex items-center gap-3">

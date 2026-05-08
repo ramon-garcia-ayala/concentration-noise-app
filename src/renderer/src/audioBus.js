@@ -54,7 +54,7 @@ export function getChannelVolumes() {
 }
 
 // ── Master volume ──
-let masterVolume = 1
+let masterVolume = 0.5
 
 export function setMasterVolume(vol) {
   masterVolume = vol

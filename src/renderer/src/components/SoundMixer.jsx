@@ -462,9 +462,7 @@ const SoundMixer = forwardRef(function SoundMixer(_, ref) {
             Frequency Mixer
           </h2>
           <p className="font-mono text-[10px] text-[#86868b] mt-0.5">
-            {activeCount > 0
-              ? `${activeCount} channel${activeCount > 1 ? 's' : ''} active`
-              : 'Adjust sliders to shape your noise'}
+            {`${activeCount} channel${activeCount !== 1 ? 's' : ''} active`}
           </p>
         </div>
 
@@ -538,19 +536,20 @@ const SoundMixer = forwardRef(function SoundMixer(_, ref) {
             )}
           </div>
 
-          {/* Reset — always present, visibility toggles */}
+          {/* Reset */}
           <button
             onClick={resetAll}
-            className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center active:scale-95 transition-all"
+            disabled={activeCount === 0}
+            className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all"
             style={{
               background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
               border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}`,
-              opacity: activeCount > 0 ? 0.5 : 0,
-              pointerEvents: activeCount > 0 ? 'auto' : 'none'
+              opacity: activeCount > 0 ? 0.6 : 0.2,
+              cursor: activeCount > 0 ? 'pointer' : 'default'
             }}
             title="Reset all"
           >
-            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#86868b" strokeWidth="1.5" strokeLinecap="round">
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke={activeCount > 0 ? '#86868b' : (dark ? '#555' : '#ccc')} strokeWidth="1.5" strokeLinecap="round">
               <path d="M2 2v4.5h4.5" />
               <path d="M2 6.5A6 6 0 1 1 3.5 11" />
             </svg>

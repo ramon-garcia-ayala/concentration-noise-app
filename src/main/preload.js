@@ -24,6 +24,18 @@ contextBridge.exposeInMainWorld('electron', {
   },
   mediaControl: (key) => ipcRenderer.send('media-control', key),
   setSystemVolume: (level) => ipcRenderer.send('set-system-volume', level),
+  sendMascotClick: () => ipcRenderer.send('mascot-click'),
+  onMascotClick: (cb) => {
+    const handler = () => cb()
+    ipcRenderer.on('mascot-click', handler)
+    return () => ipcRenderer.removeListener('mascot-click', handler)
+  },
+  sendMascotUpdate: (data) => ipcRenderer.send('mascot-update', data),
+  onMascotUpdate: (cb) => {
+    const handler = (_, data) => cb(data)
+    ipcRenderer.on('mascot-update', handler)
+    return () => ipcRenderer.removeListener('mascot-update', handler)
+  },
   setMasterVolume: (level) => ipcRenderer.send('set-master-volume', level),
   onSetMasterVolume: (cb) => {
     const handler = (_, level) => cb(level)
